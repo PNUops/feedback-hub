@@ -29,6 +29,12 @@ export function FeedbackRow({ item }: { item: FeedbackListItem }) {
               {item.commentCount}
             </span>
           )}
+          {item.reactionCount > 0 && (
+            <span className="inline-flex items-center gap-0.5 text-xs text-slate-400">
+              <ThumbsUp className="size-3.5" />
+              {item.reactionCount}
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
@@ -45,12 +51,6 @@ export function FeedbackRow({ item }: { item: FeedbackListItem }) {
         <span className="text-slate-400">{rel(item.createdAt)}</span>
         <div className="flex items-center gap-3 text-slate-500">
           {item.assignee && <span className="text-slate-400">담당 {item.assignee}</span>}
-          {item.reactionCount > 0 && (
-            <span className="inline-flex items-center gap-1">
-              <ThumbsUp className="size-3.5" />
-              {item.reactionCount}
-            </span>
-          )}
           <span className="text-slate-600 font-medium">{who}</span>
         </div>
       </div>
