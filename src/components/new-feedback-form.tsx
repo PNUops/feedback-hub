@@ -185,7 +185,7 @@ export function NewFeedbackForm({ projects, labels }: { projects: Project[]; lab
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 placeholder={
-                  "마크다운을 쓸 수 있어요:\n**굵게**, *기울임*, `코드`\n- 목록 항목\n1. 번호 목록\n# 제목\n[링크 이름](https://...)\n> 인용"
+                  "마크다운을 쓸 수 있어요:\n**굵게**, *기울임*, `코드`\n- 목록 항목\n1. 번호 목록\n# 제목\n[링크 이름](https://...)\n> 인용\n줄바꿈은 <br>"
                 }
                 className="min-h-44"
               />

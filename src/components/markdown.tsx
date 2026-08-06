@@ -1,12 +1,19 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
+import rehypeSanitize from "rehype-sanitize";
 
-/** 비개발자도 편하게 읽히도록 기본 마크다운을 절제된 스타일로 렌더. */
+/**
+ * 비개발자도 편하게 읽히도록 기본 마크다운을 절제된 스타일로 렌더.
+ * GitHub처럼 raw HTML을 허용하되 rehype-sanitize로 안전 태그만 통과시킨다
+ * (<br> 등은 허용, <script>·이벤트 핸들러는 제거).
+ */
 export function Markdown({ children }: { children: string }) {
   return (
     <div className="text-[15px] leading-relaxed text-slate-800 break-words">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeRaw, rehypeSanitize]}
         components={{
           h1: (p) => <h2 className="text-xl font-bold mt-4 mb-2" {...p} />,
           h2: (p) => <h3 className="text-lg font-bold mt-4 mb-2" {...p} />,
