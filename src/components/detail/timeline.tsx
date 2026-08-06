@@ -18,6 +18,7 @@ import { apiSend } from "@/lib/api";
 import { STATUS_LABEL } from "@/lib/status";
 import { Markdown } from "@/components/markdown";
 import { AttachmentList, type AttachmentItem } from "@/components/detail/attachments";
+import { ReactionBar, type ReactionItem } from "@/components/detail/reaction-bar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -27,6 +28,7 @@ export type CommentItem = {
   content: string;
   createdAt: string;
   attachments: AttachmentItem[];
+  reactions: ReactionItem[];
 };
 export type EventItem = {
   id: number;
@@ -209,6 +211,15 @@ function CommentCard({
           <>
             <Markdown>{c.content}</Markdown>
             <AttachmentList items={c.attachments} feedbackPassword={feedbackPassword} />
+            <div className="mt-3">
+              <ReactionBar
+                targetType="COMMENT"
+                targetId={c.id}
+                reactions={c.reactions}
+                feedbackPassword={feedbackPassword}
+                onChange={onChange}
+              />
+            </div>
           </>
         )}
       </div>

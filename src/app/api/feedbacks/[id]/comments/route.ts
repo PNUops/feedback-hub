@@ -23,7 +23,20 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     orderBy: { createdAt: "asc" },
     include: { attachments: { select: { id: true, originalName: true, contentType: true, size: true } } },
   });
-  return Response.json(comments);
+
+  // 의견별 리액션(폴리모픽 대상이라 관계로 못 가져와 별도 조회 후 부착).
+  const reactions = comments.length
+    ? await prisma.reaction.findMany({
+        where: { targetType: "COMMENT", targetId: { in: comments.map((c) => c.id) } },
+        select: { targetId: true, emoji: true, actorName: true },
+      })
+    : [];
+  const byComment = new Map<number, { emoji: string; actorName: string }[]>();
+  for (const r of reactions) {
+    byComment.set(r.targetId, [...(byComment.get(r.targetId) ?? []), { emoji: r.emoji, actorName: r.actorName }]);
+  }
+
+  return Response.json(comments.map((c) => ({ ...c, reactions: byComment.get(c.id) ?? [] })));
 }
 
 const schema = z.object({
