@@ -1,0 +1,153 @@
+// feedback-hub 데이터 모델. 개념 설명은 docs repo design/data-model.md 참고.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum Status {
+  RECEIVED
+  REVIEWING
+  PLANNED
+  IN_PROGRESS
+  DONE
+  DEPLOYED
+  REJECTED
+  WITHDRAWN
+}
+
+enum ReactionTarget {
+  FEEDBACK
+  COMMENT
+}
+
+enum TimelineType {
+  STATUS_CHANGED
+  LABELED
+  UNLABELED
+  ASSIGNED
+  UNASSIGNED
+  PLANNED_SET
+  CLOSED
+  REOPENED
+}
+
+model Project {
+  id          Int        @id @default(autoincrement())
+  key         String     @unique
+  name        String
+  domain      String?
+  description String?
+  sortOrder   Int        @default(100)
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  feedbacks   Feedback[]
+}
+
+model Label {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
+  color       String
+  description String?
+  createdAt   DateTime   @default(now())
+  feedbacks   Feedback[] @relation("FeedbackLabels")
+}
+
+model Feedback {
+  id                 Int             @id @default(autoincrement())
+  project            Project         @relation(fields: [projectId], references: [id])
+  projectId          Int
+  number             Int
+  title              String
+  content            String
+  authorName         String
+  authorEmail        String?
+  assignee           String?
+  priority           Priority        @default(MEDIUM)
+  status             Status          @default(RECEIVED)
+  isPrivate            Boolean       @default(false)
+  statusBeforeWithdraw Status?
+  accessPasswordHash   String?
+  plannedDate        DateTime?
+  resolutionNote     String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  labels             Label[]         @relation("FeedbackLabels")
+  comments           Comment[]
+  timeline           TimelineEvent[]
+  attachments        Attachment[]
+
+  @@unique([projectId, number])
+  @@index([status])
+  @@index([projectId])
+}
+
+model Comment {
+  id          Int          @id @default(autoincrement())
+  feedback    Feedback     @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+  feedbackId  Int
+  authorName  String
+  authorEmail String?
+  content     String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  attachments Attachment[]
+
+  @@index([feedbackId])
+}
+
+model TimelineEvent {
+  id         Int          @id @default(autoincrement())
+  feedback   Feedback     @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+  feedbackId Int
+  type       TimelineType
+  actorName  String
+  fromValue  String?
+  toValue    String?
+  note       String?
+  createdAt  DateTime     @default(now())
+
+  @@index([feedbackId])
+}
+
+model Reaction {
+  id         Int            @id @default(autoincrement())
+  targetType ReactionTarget
+  targetId   Int
+  emoji      String
+  actorName  String
+  createdAt  DateTime       @default(now())
+
+  @@unique([targetType, targetId, emoji, actorName])
+  @@index([targetType, targetId])
+}
+
+model NotifyEmail {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  label     String?
+  createdAt DateTime @default(now())
+}
+
+model Attachment {
+  id           Int      @id @default(autoincrement())
+  feedback     Feedback? @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+  feedbackId   Int?
+  comment      Comment?  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  commentId    Int?
+  originalName String
+  storedName   String
+  contentType  String
+  size         Int
+  createdAt    DateTime @default(now())
+}
